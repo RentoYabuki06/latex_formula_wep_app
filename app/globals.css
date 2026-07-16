@@ -9,6 +9,7 @@
   --accent-hover: #85a0ff;
   --danger: #ff6b6b;
   --radius: 10px;
+  --header-h: 52px;
 }
 
 * {
@@ -41,11 +42,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  height: 52px;
+  padding: 0 14px;
+  height: var(--header-h);
   border-bottom: 1px solid var(--border);
   background: var(--panel);
   flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .header h1 {
@@ -64,9 +71,26 @@ body {
   gap: 10px;
 }
 
-/* ---------- layout ---------- */
+.hamburger {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.hamburger:hover {
+  border-color: var(--accent);
+}
+
+/* ---------- layout (縦分割: 入力20% / プレビュー80%) ---------- */
 .main {
   display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
 }
@@ -74,17 +98,19 @@ body {
 .editor-pane {
   display: flex;
   flex-direction: column;
-  width: 44%;
-  min-width: 320px;
-  border-right: 1px solid var(--border);
+  width: 100%;
+  height: 20%;
+  min-height: 130px;
+  border-bottom: 1px solid var(--border);
   background: var(--panel);
+  flex-shrink: 0;
 }
 
 .preview-pane {
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-width: 0;
+  min-height: 0;
 }
 
 .pane-title {
@@ -112,9 +138,9 @@ body {
   background: var(--panel);
   color: var(--text);
   font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  font-size: 15px;
-  line-height: 1.7;
-  padding: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 12px 16px;
 }
 
 .editor-options {
@@ -122,7 +148,7 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: 14px;
-  padding: 12px 16px;
+  padding: 8px 16px;
   border-top: 1px solid var(--border);
   background: var(--panel-2);
 }
@@ -161,7 +187,7 @@ body {
   height: 15px;
 }
 
-/* ---------- preview ---------- */
+/* ---------- preview (常に白背景) ---------- */
 .preview-area {
   flex: 1;
   display: flex;
@@ -169,22 +195,7 @@ body {
   justify-content: center;
   overflow: auto;
   padding: 32px;
-  /* 透過確認用チェッカーボード */
-  background-color: #23262f;
-  background-image: linear-gradient(45deg, #2b2f3a 25%, transparent 25%),
-    linear-gradient(-45deg, #2b2f3a 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #2b2f3a 75%),
-    linear-gradient(-45deg, transparent 75%, #2b2f3a 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
-}
-
-.preview-area.light {
-  background-color: #f4f5f8;
-  background-image: linear-gradient(45deg, #e6e8ee 25%, transparent 25%),
-    linear-gradient(-45deg, #e6e8ee 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #e6e8ee 75%),
-    linear-gradient(-45deg, transparent 75%, #e6e8ee 75%);
+  background: #ffffff;
 }
 
 .preview-svg {
@@ -248,7 +259,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
+  padding: 10px 16px;
   border-top: 1px solid var(--border);
   background: var(--panel);
   flex-shrink: 0;
@@ -287,15 +298,35 @@ body {
   white-space: nowrap;
 }
 
-/* ---------- history ---------- */
+/* ---------- history drawer (左からスライドイン) ---------- */
+.drawer-backdrop {
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 40;
+}
+
 .history-pane {
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  bottom: 0;
+  width: min(320px, 85vw);
   display: flex;
   flex-direction: column;
-  width: 260px;
-  flex-shrink: 0;
-  border-left: 1px solid var(--border);
   background: var(--panel);
-  min-height: 0;
+  border-right: 1px solid var(--border);
+  z-index: 50;
+  transform: translateX(-100%);
+  transition: transform 0.2s ease;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+.history-pane.open {
+  transform: translateX(0);
 }
 
 .history-list {
@@ -332,7 +363,7 @@ body {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   text-align: left;
   background: var(--panel-2);
   border: 1px solid var(--border);
@@ -347,9 +378,20 @@ body {
   border-color: var(--accent);
 }
 
+.history-title {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.history-code,
 .history-latex code {
   font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  font-size: 12px;
+  font-size: 11px;
+  color: var(--text-dim);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -361,24 +403,42 @@ body {
   color: var(--text-dim);
 }
 
-.history-delete {
+.history-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   flex-shrink: 0;
-  width: 24px;
+}
+
+.history-icon-btn {
+  flex: 1;
+  width: 26px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   background: transparent;
   color: var(--text-dim);
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
 }
 
-.history-delete:hover {
+.history-icon-btn:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+
+.history-icon-btn.danger:hover {
   color: var(--danger);
   background: rgba(255, 107, 107, 0.1);
 }
 
-@media (max-width: 900px) {
-  .history-pane {
-    display: none;
-  }
+.history-rename-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
 }
