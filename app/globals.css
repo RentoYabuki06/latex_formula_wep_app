@@ -278,6 +278,15 @@ body {
   color: var(--text-dim);
 }
 
+.auth-error {
+  color: var(--danger);
+  font-size: 12px;
+  max-width: 420px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ---------- history ---------- */
 .history-pane {
   display: flex;
