@@ -2,6 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { renderLatex } from "@/lib/mathjax";
+import {
+  copyPngToClipboard,
+  exportPdf,
+  exportPng,
+  exportSvg,
+  suggestFilename,
+} from "@/lib/export";
 
 const DEFAULT_LATEX = String.raw`\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}`;
 
@@ -12,6 +19,9 @@ export default function EquationEditor() {
   const [lightBg, setLightBg] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [scale, setScale] = useState(4);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const previewRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -47,6 +57,30 @@ export default function EquationEditor() {
     }, 150);
     return () => clearTimeout(t);
   }, [latex, display, doRender]);
+
+  const withExport = useCallback(
+    async (fn: () => Promise<void> | void, done?: string) => {
+      if (!svgRef.current) return;
+      setBusy(true);
+      setNotice(null);
+      try {
+        await fn();
+        if (done) {
+          setNotice(done);
+          setTimeout(() => setNotice(null), 2500);
+        }
+      } catch (e) {
+        setNotice(
+          `エクスポート失敗: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      } finally {
+        setBusy(false);
+      }
+    },
+    [],
+  );
+
+  const canExport = !busy && !error && !!latex.trim();
 
   return (
     <div className="main">
@@ -101,6 +135,72 @@ export default function EquationEditor() {
           </div>
         </div>
         {error && <div className="render-error">{error}</div>}
+        <div className="export-bar">
+          <label className="option">
+            PNG解像度
+            <select
+              value={scale}
+              onChange={(e) => setScale(Number(e.target.value))}
+            >
+              <option value={2}>2x</option>
+              <option value={4}>4x (推奨)</option>
+              <option value={8}>8x</option>
+              <option value={16}>16x</option>
+            </select>
+          </label>
+          <button
+            className="btn primary"
+            disabled={!canExport}
+            onClick={() =>
+              withExport(() =>
+                exportPng(
+                  svgRef.current!,
+                  color,
+                  scale,
+                  suggestFilename(latex, "png"),
+                ),
+              )
+            }
+          >
+            透過PNG
+          </button>
+          <button
+            className="btn"
+            disabled={!canExport}
+            onClick={() =>
+              withExport(() =>
+                exportSvg(svgRef.current!, color, suggestFilename(latex, "svg")),
+              )
+            }
+          >
+            SVG
+          </button>
+          <button
+            className="btn"
+            disabled={!canExport}
+            onClick={() =>
+              withExport(() =>
+                exportPdf(svgRef.current!, color, suggestFilename(latex, "pdf")),
+              )
+            }
+          >
+            PDF
+          </button>
+          <button
+            className="btn"
+            disabled={!canExport}
+            onClick={() =>
+              withExport(
+                () => copyPngToClipboard(svgRef.current!, color, scale),
+                "PNGをクリップボードにコピーしました",
+              )
+            }
+          >
+            コピー
+          </button>
+          <div className="spacer" />
+          {notice && <span className="export-notice">{notice}</span>}
+        </div>
       </section>
     </div>
   );
