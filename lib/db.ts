@@ -5,15 +5,18 @@ export interface Equation {
   latex: string;
   display: boolean;
   color: string;
+  title: string | null;
   created_at: string;
 }
+
+const COLS = "id, latex, display, color, title, created_at";
 
 /** 履歴を新しい順に取得 */
 export async function listEquations(limit = 200): Promise<Equation[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("equations")
-    .select("id, latex, display, color, created_at")
+    .select(COLS)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);
@@ -25,15 +28,29 @@ export async function saveEquation(input: {
   latex: string;
   display: boolean;
   color: string;
+  title?: string | null;
 }): Promise<Equation> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("equations")
     .insert(input)
-    .select("id, latex, display, color, created_at")
+    .select(COLS)
     .single();
   if (error) throw new Error(error.message);
   return data;
+}
+
+/** 履歴の名前を変更 */
+export async function renameEquation(
+  id: string,
+  title: string | null,
+): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("equations")
+    .update({ title })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 /** 履歴から削除 */

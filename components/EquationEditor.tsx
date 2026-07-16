@@ -11,6 +11,7 @@ import {
 } from "@/lib/export";
 import { saveEquation, type Equation } from "@/lib/db";
 import { useUser } from "@/lib/useUser";
+import AuthButton from "@/components/AuthButton";
 import HistoryPanel from "@/components/HistoryPanel";
 
 const DEFAULT_LATEX = String.raw`\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}`;
@@ -18,14 +19,14 @@ const DEFAULT_LATEX = String.raw`\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\p
 export default function EquationEditor() {
   const [latex, setLatex] = useState(DEFAULT_LATEX);
   const [display, setDisplay] = useState(true);
-  const [color, setColor] = useState("#ffffff");
-  const [lightBg, setLightBg] = useState(false);
+  const [color, setColor] = useState("#000000");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [scale, setScale] = useState(4);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const { user } = useUser();
 
   const previewRef = useRef<HTMLDivElement>(null);
@@ -91,6 +92,7 @@ export default function EquationEditor() {
     setLatex(eq.latex);
     setDisplay(eq.display);
     setColor(eq.color);
+    setDrawerOpen(false);
   }, []);
 
   const handleSave = useCallback(
@@ -103,141 +105,169 @@ export default function EquationEditor() {
   );
 
   return (
-    <div className="main">
-      <section className="editor-pane">
-        <div className="pane-title">LaTeX 入力</div>
-        <textarea
-          className="latex-input"
-          value={latex}
-          onChange={(e) => setLatex(e.target.value)}
-          spellCheck={false}
-          placeholder={"例: \\frac{a}{b}"}
-          autoFocus
-        />
-        <div className="editor-options">
-          <label className="option">
-            <input
-              type="checkbox"
-              checked={display}
-              onChange={(e) => setDisplay(e.target.checked)}
-            />
-            ディスプレイ数式
-          </label>
-          <label className="option">
-            色
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => setColor(e.target.value)}
-            />
-          </label>
-          <label className="option">
-            <input
-              type="checkbox"
-              checked={lightBg}
-              onChange={(e) => setLightBg(e.target.checked)}
-            />
-            明るい背景で確認
-          </label>
+    <div className="app">
+      <header className="header">
+        <div className="header-left">
+          <button
+            className="hamburger"
+            aria-label="履歴を開閉"
+            aria-expanded={drawerOpen}
+            onClick={() => setDrawerOpen((o) => !o)}
+          >
+            ☰
+          </button>
+          <h1>
+            LaTeX <span>Studio</span>
+          </h1>
         </div>
-      </section>
+        <div className="header-actions">
+          <AuthButton />
+        </div>
+      </header>
 
-      <section className="preview-pane">
-        <div className="pane-title">プレビュー(背景は透過確認用)</div>
-        <div className={`preview-area${lightBg ? " light" : ""}`}>
-          {loading && (
-            <span style={{ color: "var(--text-dim)" }}>
-              MathJax を読み込み中…
-            </span>
-          )}
-          {/* この div の中身は MathJax が直接操作するため、React の子要素は置かない */}
-          <div
-            ref={previewRef}
-            className="preview-svg"
-            style={{ color }}
-            aria-live="polite"
+      {drawerOpen && (
+        <div
+          className="drawer-backdrop"
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+      <HistoryPanel
+        open={drawerOpen}
+        user={user}
+        refreshKey={refreshKey}
+        onSelect={handleSelect}
+      />
+
+      <div className="main">
+        <section className="editor-pane">
+          <textarea
+            className="latex-input"
+            value={latex}
+            onChange={(e) => setLatex(e.target.value)}
+            spellCheck={false}
+            placeholder={"例: \\frac{a}{b}"}
+            autoFocus
           />
-        </div>
-        {error && <div className="render-error">{error}</div>}
-        <div className="export-bar">
-          <label className="option">
-            PNG解像度
-            <select
-              value={scale}
-              onChange={(e) => setScale(Number(e.target.value))}
+          <div className="editor-options">
+            <label className="option">
+              <input
+                type="checkbox"
+                checked={display}
+                onChange={(e) => setDisplay(e.target.checked)}
+              />
+              ディスプレイ数式
+            </label>
+            <label className="option">
+              色
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="preview-pane">
+          <div className="preview-area">
+            {loading && (
+              <span style={{ color: "#888" }}>MathJax を読み込み中…</span>
+            )}
+            {/* この div の中身は MathJax が直接操作するため、React の子要素は置かない */}
+            <div
+              ref={previewRef}
+              className="preview-svg"
+              style={{ color }}
+              aria-live="polite"
+            />
+          </div>
+          {error && <div className="render-error">{error}</div>}
+          <div className="export-bar">
+            <label className="option">
+              PNG解像度
+              <select
+                value={scale}
+                onChange={(e) => setScale(Number(e.target.value))}
+              >
+                <option value={2}>2x</option>
+                <option value={4}>4x (推奨)</option>
+                <option value={8}>8x</option>
+                <option value={16}>16x</option>
+              </select>
+            </label>
+            <button
+              className="btn primary"
+              disabled={!canExport}
+              onClick={() =>
+                withExport(() =>
+                  exportPng(
+                    svgRef.current!,
+                    color,
+                    scale,
+                    suggestFilename(latex, "png"),
+                  ),
+                )
+              }
             >
-              <option value={2}>2x</option>
-              <option value={4}>4x (推奨)</option>
-              <option value={8}>8x</option>
-              <option value={16}>16x</option>
-            </select>
-          </label>
-          <button
-            className="btn primary"
-            disabled={!canExport}
-            onClick={() =>
-              withExport(() =>
-                exportPng(
-                  svgRef.current!,
-                  color,
-                  scale,
-                  suggestFilename(latex, "png"),
-                ),
-              )
-            }
-          >
-            透過PNG
-          </button>
-          <button
-            className="btn"
-            disabled={!canExport}
-            onClick={() =>
-              withExport(() =>
-                exportSvg(svgRef.current!, color, suggestFilename(latex, "svg")),
-              )
-            }
-          >
-            SVG
-          </button>
-          <button
-            className="btn"
-            disabled={!canExport}
-            onClick={() =>
-              withExport(() =>
-                exportPdf(svgRef.current!, color, suggestFilename(latex, "pdf")),
-              )
-            }
-          >
-            PDF
-          </button>
-          <button
-            className="btn"
-            disabled={!canExport}
-            onClick={() =>
-              withExport(
-                () => copyPngToClipboard(svgRef.current!, color, scale),
-                "PNGをクリップボードにコピーしました",
-              )
-            }
-          >
-            コピー
-          </button>
-          <div className="spacer" />
-          {notice && <span className="export-notice">{notice}</span>}
-          {user && (
+              透過PNG
+            </button>
             <button
               className="btn"
               disabled={!canExport}
-              onClick={handleSave}
-              title="この数式を履歴に保存"
+              onClick={() =>
+                withExport(() =>
+                  exportSvg(
+                    svgRef.current!,
+                    color,
+                    suggestFilename(latex, "svg"),
+                  ),
+                )
+              }
             >
-              保存
+              SVG
             </button>
-          )}
-        </div>
-      </section>
-
-      <HistoryPanel user={user} refreshKey={refreshKey} onSelect={handleSelect} />
+            <button
+              className="btn"
+              disabled={!canExport}
+              onClick={() =>
+                withExport(() =>
+                  exportPdf(
+                    svgRef.current!,
+                    color,
+                    suggestFilename(latex, "pdf"),
+                  ),
+                )
+              }
+            >
+              PDF
+            </button>
+            <button
+              className="btn"
+              disabled={!canExport}
+              onClick={() =>
+                withExport(
+                  () => copyPngToClipboard(svgRef.current!, color, scale),
+                  "PNGをクリップボードにコピーしました",
+                )
+              }
+            >
+              コピー
+            </button>
+            <div className="spacer" />
+            {notice && <span className="export-notice">{notice}</span>}
+            {user && (
+              <button
+                className="btn"
+                disabled={!canExport}
+                onClick={handleSave}
+                title="この数式を履歴に保存"
+              >
+                保存
+              </button>
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

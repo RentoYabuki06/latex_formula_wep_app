@@ -1,12 +1,14 @@
 -- LaTeX Studio: 数式ログテーブル
 -- Supabase ダッシュボード > SQL Editor でこのファイルの内容を実行してください
+-- (既存プロジェクトを更新する場合は supabase/migrations/ 内のSQLを実行)
 
 create table if not exists public.equations (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
   latex text not null,
   display boolean not null default true,
-  color text not null default '#ffffff',
+  color text not null default '#000000',
+  title text,
   created_at timestamptz not null default now()
 );
 
@@ -22,6 +24,11 @@ create policy "select own equations"
 
 create policy "insert own equations"
   on public.equations for insert
+  with check (auth.uid() = user_id);
+
+create policy "update own equations"
+  on public.equations for update
+  using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
 create policy "delete own equations"
