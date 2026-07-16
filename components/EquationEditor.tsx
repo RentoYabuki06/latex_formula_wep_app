@@ -145,14 +145,18 @@ export default function EquationEditor() {
       <section className="preview-pane">
         <div className="pane-title">プレビュー(背景は透過確認用)</div>
         <div className={`preview-area${lightBg ? " light" : ""}`}>
+          {loading && (
+            <span style={{ color: "var(--text-dim)" }}>
+              MathJax を読み込み中…
+            </span>
+          )}
+          {/* この div の中身は MathJax が直接操作するため、React の子要素は置かない */}
           <div
             ref={previewRef}
             className="preview-svg"
             style={{ color }}
             aria-live="polite"
-          >
-            {loading && <span style={{ color: "var(--text-dim)" }}>MathJax を読み込み中…</span>}
-          </div>
+          />
         </div>
         {error && <div className="render-error">{error}</div>}
         <div className="export-bar">
