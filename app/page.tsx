@@ -1,3 +1,4 @@
+import AuthButton from "@/components/AuthButton";
 import EquationEditor from "@/components/EquationEditor";
 
 export default function Home() {
@@ -7,7 +8,9 @@ export default function Home() {
         <h1>
           LaTeX <span>Studio</span>
         </h1>
-        <div className="header-actions" />
+        <div className="header-actions">
+          <AuthButton />
+        </div>
       </header>
       <EquationEditor />
     </div>

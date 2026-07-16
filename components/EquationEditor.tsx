@@ -9,6 +9,9 @@ import {
   exportSvg,
   suggestFilename,
 } from "@/lib/export";
+import { saveEquation, type Equation } from "@/lib/db";
+import { useUser } from "@/lib/useUser";
+import HistoryPanel from "@/components/HistoryPanel";
 
 const DEFAULT_LATEX = String.raw`\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}`;
 
@@ -22,6 +25,8 @@ export default function EquationEditor() {
   const [scale, setScale] = useState(4);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { user } = useUser();
 
   const previewRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -81,6 +86,21 @@ export default function EquationEditor() {
   );
 
   const canExport = !busy && !error && !!latex.trim();
+
+  const handleSelect = useCallback((eq: Equation) => {
+    setLatex(eq.latex);
+    setDisplay(eq.display);
+    setColor(eq.color);
+  }, []);
+
+  const handleSave = useCallback(
+    () =>
+      withExport(async () => {
+        await saveEquation({ latex, display, color });
+        setRefreshKey((k) => k + 1);
+      }, "履歴に保存しました"),
+    [withExport, latex, display, color],
+  );
 
   return (
     <div className="main">
@@ -200,8 +220,20 @@ export default function EquationEditor() {
           </button>
           <div className="spacer" />
           {notice && <span className="export-notice">{notice}</span>}
+          {user && (
+            <button
+              className="btn"
+              disabled={!canExport}
+              onClick={handleSave}
+              title="この数式を履歴に保存"
+            >
+              保存
+            </button>
+          )}
         </div>
       </section>
+
+      <HistoryPanel user={user} refreshKey={refreshKey} onSelect={handleSelect} />
     </div>
   );
 }
