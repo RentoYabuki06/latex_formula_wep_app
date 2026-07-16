@@ -8,10 +8,15 @@ export default function AuthButton() {
   const { user, authReady } = useUser();
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // /auth/callback から ?auth_error= 付きで戻された場合に表示する
+  // /auth/callback から ?auth_error= 付きで戻された場合、
+  // または Supabase が #error_description=... (フラグメント) で返した場合に表示する
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const err = params.get("auth_error");
+    const hashParams = new URLSearchParams(location.hash.replace(/^#/, ""));
+    const err =
+      params.get("auth_error") ??
+      hashParams.get("error_description") ??
+      hashParams.get("error");
     if (err) {
       setAuthError(err);
       params.delete("auth_error");
