@@ -124,19 +124,18 @@ export default function PracticeGame() {
   return (
     <div className="practice">
       <div className="practice-toolbar">
-        <label className="option">
-          難易度
-          <select
-            value={level}
-            onChange={(e) => changeLevel(e.target.value as Level)}
-          >
-            {(Object.keys(PROBLEMS) as Level[]).map((lv) => (
-              <option key={lv} value={lv}>
-                {LEVEL_LABELS[lv]}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="level-btns" role="group" aria-label="難易度">
+          {(Object.keys(PROBLEMS) as Level[]).map((lv) => (
+            <button
+              key={lv}
+              className={`btn level-btn${level === lv ? " active" : ""}`}
+              aria-pressed={level === lv}
+              onClick={() => changeLevel(lv)}
+            >
+              {LEVEL_LABELS[lv]}
+            </button>
+          ))}
+        </div>
         <span className="practice-progress">
           問題 {(index % problems.length) + 1} / {problems.length}
         </span>
