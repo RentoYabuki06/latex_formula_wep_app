@@ -142,6 +142,9 @@ export default function EquationEditor() {
           </h1>
         </div>
         <div className="header-actions">
+          <a href="/practice" className="btn" title="数式再現練習">
+            練習
+          </a>
           <AuthButton />
         </div>
       </header>
