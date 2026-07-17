@@ -277,7 +277,7 @@ export default function EquationEditor() {
                 )
               }
             >
-              コピー
+              画像をコピー
             </button>
             <div className="spacer" />
             {notice && <span className="export-notice">{notice}</span>}
