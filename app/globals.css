@@ -442,3 +442,52 @@ body {
   font-size: 13px;
   outline: none;
 }
+
+/* ---------- symbol palette ---------- */
+.palette {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--panel-2);
+  flex-shrink: 0;
+}
+
+.palette-select {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.palette-items {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  min-width: 0;
+}
+
+.palette-btn {
+  flex-shrink: 0;
+  min-width: 30px;
+  height: 28px;
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.palette-btn:hover {
+  border-color: var(--accent);
+  background: #262b3b;
+}

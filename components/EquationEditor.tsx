@@ -11,8 +11,10 @@ import {
 } from "@/lib/export";
 import { saveEquation, type Equation } from "@/lib/db";
 import { useUser } from "@/lib/useUser";
+import type { PaletteItem } from "@/lib/palette";
 import AuthButton from "@/components/AuthButton";
 import HistoryPanel from "@/components/HistoryPanel";
+import SymbolPalette from "@/components/SymbolPalette";
 
 const DEFAULT_LATEX = String.raw`\int_{-\infty}^{\infty} e^{-x^2}\,dx = \sqrt{\pi}`;
 
@@ -31,7 +33,26 @@ export default function EquationEditor() {
 
   const previewRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const renderSeq = useRef(0);
+
+  // パレットからカーソル位置にスニペットを挿入する
+  const handleInsert = useCallback(
+    (item: PaletteItem) => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      const start = ta.selectionStart ?? latex.length;
+      const end = ta.selectionEnd ?? start;
+      const next = latex.slice(0, start) + item.insert + latex.slice(end);
+      setLatex(next);
+      const caret = start + (item.caret ?? item.insert.length);
+      requestAnimationFrame(() => {
+        ta.focus();
+        ta.setSelectionRange(caret, caret);
+      });
+    },
+    [latex],
+  );
 
   const doRender = useCallback(async (tex: string, disp: boolean) => {
     const seq = ++renderSeq.current;
@@ -141,6 +162,7 @@ export default function EquationEditor() {
       <div className="main">
         <section className="editor-pane">
           <textarea
+            ref={textareaRef}
             className="latex-input"
             value={latex}
             onChange={(e) => setLatex(e.target.value)}
@@ -148,6 +170,7 @@ export default function EquationEditor() {
             placeholder={"例: \\frac{a}{b}"}
             autoFocus
           />
+          <SymbolPalette onInsert={handleInsert} />
           <div className="editor-options">
             <label className="option">
               <input
