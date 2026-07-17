@@ -534,6 +534,34 @@ body {
   color: var(--text-dim);
 }
 
+.level-btns {
+  display: inline-flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.level-btn {
+  border: none;
+  border-radius: 0;
+  padding: 6px 16px;
+}
+
+.level-btn + .level-btn {
+  border-left: 1px solid var(--border);
+}
+
+.level-btn.active {
+  background: var(--accent);
+  color: #0d1020;
+  font-weight: 600;
+}
+
+.level-btn.active:hover {
+  background: var(--accent-hover);
+}
+
 .practice-target,
 .practice-attempt {
   display: flex;
