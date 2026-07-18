@@ -1,56 +1,150 @@
 # LaTeX Studio
 
-LaTeX数式をライブプレビューしながら作成し、高画質の背景透過PNG / SVG / PDFで書き出せる個人用Webアプリ。
+**日本語** | [English](README.en.md)
+
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![MathJax](https://img.shields.io/badge/MathJax-v3-green)](https://www.mathjax.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20Auth-3ECF8E?logo=supabase)](https://supabase.com/)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel)](https://vercel.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+LaTeX数式をライブプレビューしながら作成し、**高解像度の背景透過PNG / 自己完結SVG / ベクターPDF** として書き出せるWebアプリ。作成した数式はクラウドに記録され、どの端末からでも呼び出せます。LaTeX記法を鍛える**数式再現練習モード**も内蔵しています。
+
+---
+
+## 目次
+
+- [背景と設計思想](#背景と設計思想)
+- [研究ワークフローでの活用](#研究ワークフローでの活用)
+- [機能](#機能)
+- [使い方](#使い方)
+- [アーキテクチャ](#アーキテクチャ)
+- [セルフホスト手順](#セルフホスト手順)
+- [ディレクトリ構成](#ディレクトリ構成)
+- [ライセンス](#ライセンス)
+
+---
+
+## 背景と設計思想
+
+研究の現場では「数式を1つだけ、きれいな画像として取り出したい」場面が頻繁にあります。スライドの1枚に埋め込む式、ポスターの隅に置く定義、READMEやドキュメントに貼る導出結果 — そのたびにLaTeX文書一式をコンパイルしてトリミングするのは大げさで、オンラインエディタは広告や画質、エクスポート形式の制約がつきまといます。
+
+LaTeX Studio は、この「数式1つのためのワークフロー」を最短にすることだけを考えて設計されています。
+
+- **入力した瞬間に見える** — MathJax v3 によるミリ秒オーダーのライブプレビュー。コンパイル待ちなし
+- **出力はそのまま成果物に使える品質** — 透過PNGは最大16倍解像度、SVG/PDFはベクターのまま。フォントはファイルに埋め込まれ、どの環境でも同じ見た目で表示される
+- **数式は資産として蓄積する** — 一度書いた式はクラウドDBに保存され、名前を付けて整理し、別の端末からワンクリックで呼び出して再編集できる
+- **道具は手に馴染ませる** — 記法を思い出せないときのための記号パレットと、記法を体に覚え込ませるための練習モード。書く力そのものを育てる
+
+## 研究ワークフローでの活用
+
+このアプリは実際の研究活動の中で、次の3つの用途を軸に使われています。
+
+**1. 論文・学会資料の図版作成**
+スライド(Keynote / PowerPoint / Google Slides)やポスターに数式を埋め込む際、背景透過PNGをクリップボード経由で直接貼り付けます。デザインに合わせて数式の色を変えられるため、ダークテーマのスライドにも対応できます。ベクター品質が必要な場面(ポスター印刷など)ではSVG/PDFを使います。
+
+**2. 数式スニペットの管理**
+研究テーマごとに頻出する定義式・評価指標・変形結果を名前付きで保存し、「あの式どう書いたっけ」を排除します。履歴はGoogleアカウントに紐づくため、研究室のデスクトップでも自宅のラップトップでも同じライブラリにアクセスできます。
+
+**3. LaTeX記法のトレーニング**
+練習モードには難易度別(初級・中級・上級)各100問、計300問を収録。お手本の数式を見てLaTeXを入力すると、**レンダリング結果の構造一致**で自動採点されます。文字列の一致ではなく「見た目が同じなら正解」という判定なので、`\frac{1}{2}` と `\dfrac{1}{2}` のような流儀の違いに縛られず、実戦的な再現力が身につきます。後輩のオンボーディングにも使えます。
 
 ## 機能
 
-- **ライブプレビュー**: MathJax v3 (SVG出力) による即時レンダリング。physics / color / cancel / mhchem 拡張対応
-- **エクスポート**
-  - 背景透過PNG(解像度 2x / 4x / 8x / 16x)
-  - SVG(自己完結・色焼き込み済み)
-  - ベクターPDF
-  - PNGクリップボードコピー
-- **履歴**: 保存した数式を Supabase (Postgres) に記録。クリックで再編集、どの端末からでもアクセス可能
-- **認証**: Google OAuth (Supabase Auth)。履歴は自分だけが閲覧可能 (RLS)
-
-## 技術スタック
-
-| 層 | 技術 |
+| 機能 | 説明 |
 |---|---|
-| フレームワーク | Next.js 15 (App Router, TypeScript) |
-| 数式レンダリング | MathJax v3 `tex-svg-full` |
-| PDF生成 | jspdf + svg2pdf.js |
-| DB / 認証 | Supabase (Postgres + Google OAuth) |
-| ホスティング | Vercel |
+| ライブプレビュー | MathJax v3 (`tex-svg-full`)。physics / color / cancel / mhchem 拡張対応。150msデバウンス |
+| 透過PNG出力 | 2x / 4x / 8x / 16x の解像度選択。背景は完全透過 |
+| SVG出力 | フォントパス埋め込みの自己完結SVG。色は焼き込み済み |
+| PDF出力 | jspdf + svg2pdf.js によるベクターPDF |
+| クリップボードコピー | 透過PNGをワンクリックでコピーし、スライドへ直接ペースト |
+| 記号パレット | 6カテゴリ約100項目を常時表示。カーソル位置へ挿入、テンプレートはブレース内へ自動キャレット移動 |
+| クラウド履歴 | Supabase (Postgres + RLS)。保存・名前変更・削除・ワンクリック復元 |
+| Google認証 | Supabase Auth によるOAuth。履歴は自分だけが閲覧可能 |
+| 練習モード | 難易度別300問。レンダリング一致による自動採点、答え表示、スコア記録 |
+| レスポンシブ | 縦分割レイアウト(入力20% / プレビュー80%)+ 左スライドの履歴ドロワー。細い画面でも快適 |
 
-## セットアップ
+## 使い方
 
-[docs/SETUP.md](docs/SETUP.md) を参照(Supabase / Google OAuth / Vercel の設定手順)。
+### エディタ (`/`)
 
-ローカルでは:
+1. 上部のテキストエリアにLaTeXを入力すると、下のプレビューに即時描画されます
+2. 記号パレットをクリックするとカーソル位置に挿入されます(`\frac{}{}` 等は最初の `{}` 内にカーソルが移動)
+3. 下部バーから **透過PNG / SVG / PDF / 画像をコピー** でエクスポート。PNGは解像度を選択可能
+4. Googleでログインすると **保存** ボタンが現れ、履歴(左上 ☰)に記録されます
+5. 履歴アイテムはクリックで復元、✎ で名前変更、× で削除
 
-```bash
-npm install
-cp .env.example .env.local  # Supabase の URL / anonキーを記入
-npm run dev
+### 練習モード (`/practice`)
+
+1. ヘッダーの **練習** から移動し、難易度(初級 / 中級 / 上級)をボタンで選択
+2. お手本の数式をLaTeXで再現すると、一致した瞬間に「✓ 正解!」と判定されます
+3. 詰まったら **答えを見る**、解けたら **次の問題 →**
+
+## アーキテクチャ
+
+```
+┌────────────┐  LaTeX入力   ┌──────────────┐  SVG  ┌──────────────────┐
+│  textarea   │ ──────────→ │  MathJax v3   │ ────→ │ プレビュー (DOM)   │
+└────────────┘  (150ms)     │  tex-svg-full │       └────────┬─────────┘
+                            └──────────────┘                │ clone + 色焼き込み
+                                                   ┌─────────┴──────────┐
+                                                   │  SVG串列化          │
+                                                   ├── Blob → <img> → canvas → 透過PNG
+                                                   ├── そのままダウンロード → SVG
+                                                   └── svg2pdf.js → ベクターPDF
+┌─────────────────────────────────────────────────────────────┐
+│ Supabase:  Google OAuth (Auth) + equations テーブル (RLS)      │
+│ Next.js 15 App Router + @supabase/ssr (セッション管理)          │
+│ Vercel: mainブランチ push で自動デプロイ                         │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Supabase 未設定でもエディタとエクスポートは動作する(履歴のみ無効)。
+設計上のポイント:
+
+- **`fontCache: "none"`** — MathJaxのグリフパスを各SVGに埋め込むことで、エクスポートしたファイルが単体で完結する
+- **`currentColor` の焼き込み** — エクスポート時にクローンへ実色を書き込み、ビューア差異による色抜けを防ぐ
+- **サーバーレス構成** — レンダリングもエクスポートも全てブラウザ内で完結。サーバーはSupabaseのDB/Authのみで、維持コストは無料枠に収まる
+- **グレースフルデグラデーション** — Supabase未設定でもエディタ・エクスポート・練習モードは完全動作(履歴のみ無効)
+
+## セルフホスト手順
+
+Supabaseプロジェクト作成、Google OAuth設定、Vercelデプロイまでの詳細な手順は **[docs/SETUP.md](docs/SETUP.md)** を参照してください(所要 20〜30分、全て無料枠で運用可能)。
+
+ローカルで試すだけなら:
+
+```bash
+git clone https://github.com/RentoYabuki06/latex_formula_wep_app.git
+cd latex_formula_wep_app
+npm install
+npm run dev   # http://localhost:3000 (Supabase未設定でも履歴以外は動作)
+```
 
 ## ディレクトリ構成
 
 ```
 app/
-  page.tsx              # メイン画面
-  auth/callback/        # OAuth コールバック
+  page.tsx               # エディタ画面
+  practice/page.tsx      # 練習モード
+  auth/callback/         # OAuth コールバック
 components/
-  EquationEditor.tsx    # エディタ + プレビュー + エクスポート
-  HistoryPanel.tsx      # 履歴サイドバー
-  AuthButton.tsx        # ログイン/ログアウト
+  EquationEditor.tsx     # エディタ + プレビュー + エクスポート
+  SymbolPalette.tsx      # 記号パレット
+  HistoryPanel.tsx       # 履歴ドロワー
+  PracticeGame.tsx       # 練習モード本体
+  AuthButton.tsx         # ログイン / ログアウト
 lib/
-  mathjax.ts            # MathJax ローダ / レンダリング
-  export.ts             # PNG / SVG / PDF エクスポート
-  db.ts                 # equations テーブル CRUD
-  supabase/client.ts    # Supabase ブラウザクライアント
-supabase/schema.sql     # DBスキーマ + RLS
+  mathjax.ts             # MathJax ローダ / レンダリング
+  export.ts              # PNG / SVG / PDF エクスポート
+  palette.ts             # パレット定義 (6カテゴリ)
+  problems.ts            # 練習問題 (難易度別 各100問)
+  db.ts                  # equations CRUD
+  supabase/client.ts     # Supabase ブラウザクライアント
+supabase/
+  schema.sql             # DBスキーマ + RLS
+  migrations/            # 既存DB向けマイグレーション
+docs/SETUP.md            # セットアップ手順書
 ```
+
+## ライセンス
+
+[MIT](LICENSE) © 2026 Rento Yabuki
