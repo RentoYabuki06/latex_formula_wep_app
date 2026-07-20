@@ -113,6 +113,27 @@ export async function copyPngToClipboard(
   await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
 }
 
+/**
+ * SVG をクリップボードへコピー。
+ * 可能なら image/svg+xml として、非対応ブラウザではSVGソース文字列としてコピーする
+ * (Figma / Illustrator / エディタ等にはテキスト貼り付けでも認識される)
+ */
+export async function copySvgToClipboard(
+  svg: SVGSVGElement,
+  color: string,
+): Promise<void> {
+  const str = svgToString(svg, color);
+  try {
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        "image/svg+xml": new Blob([str], { type: "image/svg+xml" }),
+      }),
+    ]);
+  } catch {
+    await navigator.clipboard.writeText(str);
+  }
+}
+
 /** ベクターのまま PDF としてダウンロード */
 export async function exportPdf(
   svg: SVGSVGElement,

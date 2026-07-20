@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { renderLatex } from "@/lib/mathjax";
 import {
   copyPngToClipboard,
+  copySvgToClipboard,
   exportPdf,
   exportPng,
   exportSvg,
@@ -252,6 +253,19 @@ export default function EquationEditor() {
               title="自己完結SVGファイルとしてダウンロード"
             >
               SVGとして保存
+            </button>
+            <button
+              className="btn"
+              disabled={!canExport}
+              onClick={() =>
+                withExport(
+                  () => copySvgToClipboard(svgRef.current!, color),
+                  "SVGをクリップボードにコピーしました",
+                )
+              }
+              title="SVGをクリップボードへコピー(非対応ブラウザではSVGソースをテキストとしてコピー)"
+            >
+              SVGをコピー
             </button>
             <button
               className="btn"
