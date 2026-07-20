@@ -249,8 +249,9 @@ export default function EquationEditor() {
                   ),
                 )
               }
+              title="自己完結SVGファイルとしてダウンロード"
             >
-              SVG
+              SVGとして保存
             </button>
             <button
               className="btn"
@@ -273,11 +274,31 @@ export default function EquationEditor() {
               onClick={() =>
                 withExport(
                   () => copyPngToClipboard(svgRef.current!, color, scale),
-                  "PNGをクリップボードにコピーしました",
+                  "透過PNGをコピーしました",
                 )
               }
+              title="背景透過PNGをクリップボードへコピー"
             >
-              画像をコピー
+              コピー(透過)
+            </button>
+            <button
+              className="btn"
+              disabled={!canExport}
+              onClick={() =>
+                withExport(
+                  () =>
+                    copyPngToClipboard(
+                      svgRef.current!,
+                      color,
+                      scale,
+                      "#ffffff",
+                    ),
+                  "白背景PNGをコピーしました",
+                )
+              }
+              title="白背景付きPNGをクリップボードへコピー"
+            >
+              コピー(白背景)
             </button>
             <div className="spacer" />
             {notice && <span className="export-notice">{notice}</span>}

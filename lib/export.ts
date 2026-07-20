@@ -54,6 +54,8 @@ export function svgToPngBlob(
   svg: SVGSVGElement,
   color: string,
   scale: number,
+  /** 背景色。省略時は塗らない = 透過 */
+  background?: string,
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const { width, height } = svgPixelSize(svg);
@@ -67,7 +69,10 @@ export function svgToPngBlob(
         canvas.height = Math.ceil(height * scale);
         const ctx = canvas.getContext("2d");
         if (!ctx) throw new Error("Canvas 2D context を取得できません");
-        // 背景は塗らない = 透過
+        if (background) {
+          ctx.fillStyle = background;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         canvas.toBlob((blob) => {
           URL.revokeObjectURL(url);
@@ -97,13 +102,14 @@ export async function exportPng(
   downloadBlob(blob, filename);
 }
 
-/** PNG をクリップボードへコピー */
+/** PNG をクリップボードへコピー(background 指定で背景付き、省略で透過) */
 export async function copyPngToClipboard(
   svg: SVGSVGElement,
   color: string,
   scale: number,
+  background?: string,
 ): Promise<void> {
-  const blob = await svgToPngBlob(svg, color, scale);
+  const blob = await svgToPngBlob(svg, color, scale, background);
   await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
 }
 
