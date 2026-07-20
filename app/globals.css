@@ -99,8 +99,8 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 20%;
-  min-height: 130px;
+  /* 固定20%だとパレットに押されて入力欄が潰れるため、内容に応じた高さにする */
+  height: auto;
   border-bottom: 1px solid var(--border);
   background: var(--panel);
   flex-shrink: 0;
@@ -132,11 +132,17 @@ body {
 .latex-input {
   flex: 1;
   width: 100%;
+  /* 複数行入力時に上下の行が隠れないよう、最小高さを確保しつつスクロール可能に */
+  min-height: 96px;
+  max-height: 30vh;
+  overflow-y: auto;
   resize: none;
   border: none;
   outline: none;
-  background: var(--panel);
-  color: var(--text);
+  /* パレットと色が被って見にくいため白背景に */
+  background: #ffffff;
+  color: #16181f;
+  caret-color: #16181f;
   font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
   font-size: 14px;
   line-height: 1.6;
@@ -452,7 +458,7 @@ body {
   border-top: 1px solid var(--border);
   background: var(--panel-2);
   flex-shrink: 0;
-  max-height: 30vh;
+  max-height: 24vh;
   overflow-y: auto;
 }
 
@@ -594,6 +600,10 @@ body {
 
 .practice-textarea {
   height: 90px;
+}
+
+.latex-input::placeholder {
+  color: #a0a4b0;
 }
 
 .judge {
